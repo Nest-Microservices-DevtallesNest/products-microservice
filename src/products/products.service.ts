@@ -1,13 +1,9 @@
 import { PaginationDto } from './../common/dto/pagination.dto';
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  OnModuleInit,
-} from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaClient } from '@prisma/client';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class ProductsService extends PrismaClient implements OnModuleInit {
@@ -28,7 +24,7 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
 
     const lastPage = Math.ceil(totalPages / limit);
     return {
-      data: this.product.findMany({
+      data: await this.product.findMany({
         skip: (page - 1) * limit,
         take: limit,
         where: { available: true },
@@ -47,7 +43,7 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
     });
 
     if (!product) {
-      throw new NotFoundException(`Product with id ${id} not found`);
+      throw new RpcException(`Product with id ${id} not found`);
     }
     return product;
   }
